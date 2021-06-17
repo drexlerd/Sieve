@@ -13,6 +13,7 @@ class PolicyGraph:
         self.num_features = len(features.features)
         self.num_states = 2 ** self.num_features
 
+        # add an edge between each state pair for which there exists a compatible rule.
         self.adj_list = defaultdict(set)
         for source_id in range(self.num_states):
             source = set(self._index_to_propositions(source_id))
@@ -25,6 +26,8 @@ class PolicyGraph:
 
 
     def _index_to_propositions(self, index):
+        """ Compute propositions from a state index.
+        """
         propositions = []
         p = 0
         while index > 0:
@@ -36,4 +39,6 @@ class PolicyGraph:
         return propositions
 
     def sieve(self):
+        """ Run the Sieve algorithm to compute whether the policy is termination.
+        """
         pass
