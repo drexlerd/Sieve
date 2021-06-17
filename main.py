@@ -2,18 +2,23 @@ import argparse
 
 from src.tokenizer import Tokenizer
 from src.policy_graph import PolicyGraph
+from src.feature import Features
+from src.rule import Rules
 
-# main.py [] [a] [[[gt(a)],[dec(a)]],]
+# python3 main.py "[b]" "[n]" "[[[gt(n)],[dec(n)]]]"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Sieve Algorithm")
-    parser.add_argument("booleans", type=str, help="A list of names of boolean features, e.g., [b1,b2,b3]")
-    parser.add_argument("numericals", type=str, help="A list of names of boolean features, e.g., [n1,n2,n3]")
-    parser.add_argument("rules", type=str, help="A list of policy rules, e.g., [[[gt(n1)],[dec(n1)]],]")
+    parser.add_argument("booleans", type=str, help="A list of names of boolean features, e.g., [b,]")
+    parser.add_argument("numericals", type=str, help="A list of names of boolean features, e.g., [n,]")
+    parser.add_argument("rules", type=str, help="A list of policy rules, e.g., [[[c_gt(n)],[e_dec(n)]], [[c_pos(b)], [e_neg(b)]]]")
     args = parser.parse_args()
-    tokens = Tokenizer().tokenize(args.rules)
-    print(tokens)
+
     boolean_names = [x.strip() for x in args.booleans.strip('][').split(',') if x]
     numerical_names = [x.strip() for x in args.numericals.strip('][').split(',') if x]
-    policy_graph = PolicyGraph(boolean_names, numerical_names)
-    
+
+    tokens = Tokenizer().tokenize(args.rules)
+    features = Features(boolean_names, numerical_names)
+    rules = Rules(features, tokens)
+    policy_graph = PolicyGraph(features, rules)
+    policy_graph.sieve()

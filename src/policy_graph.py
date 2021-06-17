@@ -1,29 +1,39 @@
 
 from collections import defaultdict
 
-from .valuation import Valuation
-
-def compute_valuations(boolean_names : list, numerical_names):
-    valuations = []
-    for b in boolean_names:
-        valuations.append(Valuation(len(valuations), f"pos({b})"))
-        valuations.append(Valuation(len(valuations), f"neg({b})"))
-    for n in numerical_names:
-        valuations.append(Valuation(len(valuations), f"gt({n}"))
-        valuations.append(Valuation(len(valuations), f"eq({n}"))
-    return valuations
+class Edge:
+    def __init__(self, source_id, target_id, rule):
+        self.source_id = source_id
+        self.target_id = target_id
+        self.rule = rule
 
 
 class PolicyGraph:
-    def __init__(self, boolean_names, numerical_names):
-        self.valuations = compute_valuations(boolean_names, numerical_names)
-        print(self.valuations)
-        
+    def __init__(self, features, rules):
+        self.num_features = len(features.features)
+        self.num_states = 2 ** self.num_features
+
         self.adj_list = defaultdict(set)
+        for source_id in range(self.num_states):
+            source = set(self._index_to_propositions(source_id))
+            for target_id in range(self.num_states):
+                target = set(self._index_to_propositions(target_id))
+                for rule in rules.rules:
+                    if rule.is_compatible(source, target):
+                        print("%s, %s, %s" % (source, target, rule))
+                        self.adj_list[source_id].add(Edge(source_id, target_id, rule))
 
-    def add_edges(self, rule):
-        """ Adds edges for given rule
-        """
+
+    def _index_to_propositions(self, index):
+        propositions = []
+        p = 0
+        while index > 0:
+            if index & 1 > 0:
+                propositions.append(p)
+            index >>= 1
+            p += 1
+
+        return propositions
+
+    def sieve(self):
         pass
-
-
