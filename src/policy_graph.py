@@ -21,6 +21,7 @@ class State:
 
 class PolicyGraph:
     def __init__(self, policy):
+        self.policy = policy
         self.num_features = policy.get_num_features()
         self.num_states = 2 ** self.num_features
 
@@ -54,7 +55,17 @@ class PolicyGraph:
         """
         # 1. Compute strongly connected components
         sccs = Kosajaru().compute_sccs(state_ids, self.adj_list)
-        # 2. Call sieve_scc for each strongly connected components g' in SCC(g).
+        # 2. Remove edges between different sccs because they are traversed only once.
+        for scc in sccs:
+            scc_set = set(scc)
+            for source_id in scc:
+                remove = []
+                for edge in self.adj_list[source_id]:
+                    if edge.target_id not in scc_set:
+                        remove.append(self.adj_list[source_id])
+                for edge in remove:
+                    self.adj_list[source_id].discard(edge)
+        # 3. Call sieve_scc for each strongly connected components g' in SCC(g).
         #    Return "Non-terminating", if at least one call returns "Non-terminating".
         #    Return "Terminating", otherwise.
         for scc in sccs:
@@ -70,4 +81,13 @@ class PolicyGraph:
         # 3. if no edges were removed from g' return "Non-terminating"
         # 4. if at least one edge was removed then return the result of another call to sieve.
         print(state_ids)
+        print([str(State(self.policy.features, self._index_to_propositions(state_id))) for state_id in state_ids])
+        # dominik:
+        # 1. Collect all features that are decremented in some edge (for boolean change from 1 to 0)
+        # - decrement means DecrementNumericalEffect, NegativeBooleanEffect
+        # 2. Collect all features that are incremented in some edge (for boolean change from 0 to 1)
+        for source_id in state_ids:
+            for edge in self.adj_list[source_id]:
+                pass
+
         return True

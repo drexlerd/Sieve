@@ -35,19 +35,19 @@ class Condition():
         self.literal = literal
 
 
-class PositiveBooleanCondition(Condition):
+class NegativeBooleanCondition(Condition):
     def __init__(self, feature):
         super().__init__(PositiveLiteral(feature))
 
     def __str__(self):
-        return "c_pos(" + self.literal.feature.name + ")"
+        return "c_neg(" + self.literal.feature.name + ")"
 
-class NegativeBooleanCondition(Condition):
+class PositiveBooleanCondition(Condition):
     def __init__(self, feature):
         super().__init__(NegativeLiteral(feature))
 
     def __str__(self):
-        return "c_neg(" + self.literal.feature.name + ")"
+        return "c_pos(" + self.literal.feature.name + ")"
 
 class EqualNumericalCondition(Condition):
     def __init__(self, feature):
@@ -64,7 +64,7 @@ class GreaterNumericalCondition(Condition):
         return "c_gt(" + self.literal.feature.name + ")"
 
 
-class Effect():
+class Effect(abc.ABC):
     """ Effects for deriving successor conditions.
     """
     def __init__(self, successor_conditions):
@@ -157,7 +157,6 @@ class BooleanFeature(Feature):
             return UnknownBooleanEffect(self)
         else:
             raise Exception(f"Unknown condition: {name}")
-
 
 class NumericalFeature(Feature):
     def __init__(self, index, name):
