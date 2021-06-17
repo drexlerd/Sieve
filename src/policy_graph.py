@@ -20,17 +20,17 @@ class State:
 
 
 class PolicyGraph:
-    def __init__(self, features, rules):
-        self.num_features = len(features.features)
+    def __init__(self, policy):
+        self.num_features = policy.get_num_features()
         self.num_states = 2 ** self.num_features
 
         # add an edge between each state pair for which there exists a compatible rule.
         self.adj_list = defaultdict(set)
         for source_id in range(self.num_states):
-            source = State(features, self._index_to_propositions(source_id))
+            source = State(policy.features, self._index_to_propositions(source_id))
             for target_id in range(self.num_states):
-                target = State(features, self._index_to_propositions(target_id))
-                for rule in rules.rules:
+                target = State(policy.features, self._index_to_propositions(target_id))
+                for rule in policy.rules:
                     if rule.is_compatible(source, target):
                         print("%s, %s, %s" % (source, target, rule))
                         self.adj_list[source_id].add(Edge(source_id, target_id, rule))
@@ -49,11 +49,11 @@ class PolicyGraph:
         return propositions
 
 
-    def sieve(self, states):
+    def sieve(self, state_ids):
         """ Run the Sieve algorithm to compute whether the policy is termination.
         """
         # 1. Compute strongly connected components
-        sccs = Kosajaru().compute_sccs(states, self.adj_list)
+        sccs = Kosajaru().compute_sccs(state_ids, self.adj_list)
         # 2. Call sieve_scc for each strongly connected components g' in SCC(g).
         #    Return "Non-terminating", if at least one call returns "Non-terminating".
         #    Return "Terminating", otherwise.
@@ -62,10 +62,12 @@ class PolicyGraph:
                 return False
         return True
 
-    def _sieve_scc(self, states):
+    def _sieve_scc(self, state_ids):
         """
         """
         # 1. iteratively remove edges.
         # 2. if g' is acyclic return "Terminating"
         # 3. if no edges were removed from g' return "Non-terminating"
         # 4. if at least one edge was removed then return the result of another call to sieve.
+        print(state_ids)
+        return True

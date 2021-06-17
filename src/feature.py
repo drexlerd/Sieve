@@ -183,13 +183,28 @@ class NumericalFeature(Feature):
 
 
 class Features:
-    def __init__(self, boolean_names, numerical_names):
+    def __init__(self, features, feauture_to_index):
+        self.features = features
+        self.feature_to_index = feauture_to_index
+
+    def get_feature_by_index(self, index):
+        return self.features[index]
+
+    def get_feature_by_name(self, name):
+        if name not in self.feature_to_index:
+            raise Exception(f"There is no feature with name {name}")
+        return self.features[self.feature_to_index[name]]
+
+
+class FeaturesParser:
+    def parse(self, boolean_names, numerical_names):
         self.features = []
         self.feature_to_index = dict()
         for b in boolean_names:
             self._add_boolean_feature(b)
         for n in numerical_names:
             self._add_numerical_feature(n)
+        return Features(self.features, self.feature_to_index)
 
     def _add_boolean_feature(self, name):
         b = BooleanFeature(len(self.features), name)
@@ -200,11 +215,3 @@ class Features:
         n = NumericalFeature(len(self.features), name)
         self.feature_to_index[n.name] = n.index
         self.features.append(n)
-
-    def get_feature_by_index(self, index):
-        return self.features[index]
-
-    def get_feature_by_name(self, name):
-        if name not in self.feature_to_index:
-            raise Exception(f"There is no feature with name {name}")
-        return self.features[self.feature_to_index[name]]

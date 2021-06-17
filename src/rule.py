@@ -1,4 +1,3 @@
-from .feature import PositiveLiteral, NegativeLiteral
 
 class Rule:
     """ Rule consists of list of Conditions and list of Effects
@@ -24,9 +23,29 @@ class Rule:
         return str([str(c) for c in self.conditions]) + "->" + str([str(e) for e in self.effects])
 
 
-class Rules:
-    def __init__(self, features, tokens):
-        self.rules = [Rule(conditions, effects) for conditions, effects in self._parse(features, tokens)]
+class Tokenizer():
+    """ Tokenizes the rule description.
+    """
+    def tokenize(self, text):
+        tokens = []
+        word = ""
+        for c in text:
+            if c in {"[", "]", "(", ")"}:
+                if word:
+                    tokens.append(word)
+                    word = ""
+                tokens.append(c)
+            elif c in {" ", "\t", ","}:
+                pass
+            else:
+                word += c
+        return tokens
+
+
+class RulesParser:
+    def parse(self, features, rules_description):
+        tokens = Tokenizer().tokenize(rules_description)
+        return [Rule(conditions, effects) for conditions, effects in self._parse(features, tokens)]
 
     def _parse(self, features, tokens):
         if not tokens:
