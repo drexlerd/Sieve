@@ -14,11 +14,14 @@ class Rule:
         for effect in self.effects:
             satisfied_at_least_one = False
             for condition in effect.successor_conditions:
-                if condition.literal.index in target:
+                if condition.literal.is_satisfied(target):
                     satisfied_at_least_one = True
             if not satisfied_at_least_one:
                 return False
         return True
+
+    def __str__(self):
+        return str([str(c) for c in self.conditions]) + "->" + str([str(e) for e in self.effects])
 
 
 class Rules:
@@ -46,8 +49,8 @@ class Rules:
             assert tokens.pop(0) == ")"
             return feature
         elif t in ["c_pos", "c_neg", "c_gt", "c_eq"]:
-            return features.get_feature(self._parse(features, tokens)).make_condition(t)
+            return features.get_feature_by_name(self._parse(features, tokens)).make_condition(t)
         elif t in ["e_pos", "e_neg", "e_dec", "e_inc", "e_unk"]:
-            return features.get_feature(self._parse(features, tokens)).make_effect(t)
+            return features.get_feature_by_name(self._parse(features, tokens)).make_effect(t)
         else:
             raise Exception(f"Unknown token {t}.")

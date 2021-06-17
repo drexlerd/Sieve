@@ -4,26 +4,26 @@ import abc
 class Literal(abc.ABC):
     """ Literal represents boolean feature valuation.
     """
-    def __init__(self, index : int):
-        self.index = index
+    def __init__(self, feature):
+        self.feature = feature
 
     @abc.abstractmethod
     def is_satisfied(self, state : set):
         pass
 
 class PositiveLiteral(Literal):
-    def __init__(self, index):
-        super().__init__(index)
+    def __init__(self, feature):
+        super().__init__(feature)
 
-    def is_satisfied(self, state : set):
-        return self.index in state
+    def is_satisfied(self, state):
+        return self.feature.index in state.index_set
 
 class NegativeLiteral(Literal):
-    def __init__(self, index):
-        super().__init__(index)
+    def __init__(self, feature):
+        super().__init__(feature)
 
-    def is_satisfied(self, state : set):
-        return self.index not in state
+    def is_satisfied(self, state):
+        return self.feature.index not in state.index_set
 
 
 class Condition():
@@ -37,19 +37,31 @@ class Condition():
 
 class PositiveBooleanCondition(Condition):
     def __init__(self, feature):
-        super().__init__(PositiveLiteral(feature.index))
+        super().__init__(PositiveLiteral(feature))
+
+    def __str__(self):
+        return "c_pos(" + self.literal.feature.name + ")"
 
 class NegativeBooleanCondition(Condition):
     def __init__(self, feature):
-        super().__init__(NegativeLiteral(feature.index))
+        super().__init__(NegativeLiteral(feature))
+
+    def __str__(self):
+        return "c_neg(" + self.literal.feature.name + ")"
 
 class EqualNumericalCondition(Condition):
     def __init__(self, feature):
-        super().__init__(PositiveLiteral(feature.index))
+        super().__init__(PositiveLiteral(feature))
+
+    def __str__(self):
+        return "c_eq(" + self.literal.feature.name + ")"
 
 class GreaterNumericalCondition(Condition):
     def __init__(self, feature):
-        super().__init__(NegativeLiteral(feature.index))
+        super().__init__(NegativeLiteral(feature))
+
+    def __str__(self):
+        return "c_gt(" + self.literal.feature.name + ")"
 
 
 class Effect():
@@ -63,25 +75,43 @@ class PositiveBooleanEffect(Effect):
     def __init__(self, feature):
         super().__init__([PositiveBooleanCondition(feature)])
 
+    def __str__(self):
+        return "e_pos(" + str([str(c.literal.feature.name) for c in self.successor_conditions]) + ")"
+
 class NegativeBooleanEffect(Effect):
     def __init__(self, feature):
         super().__init__([NegativeBooleanCondition(feature)])
+
+    def __str__(self):
+        return "e_neg(" + str([str(c.literal.feature.name) for c in self.successor_conditions]) + ")"
 
 class IncrementNumericalEffect(Effect):
     def __init__(self, feature):
         super().__init__([GreaterNumericalCondition(feature)])
 
+    def __str__(self):
+        return "e_inc(" + str([str(c.literal.feature.name) for c in self.successor_conditions]) + ")"
+
 class DecrementNumericalEffect(Effect):
     def __init__(self, feature):
         super().__init__([GreaterNumericalCondition(feature), EqualNumericalCondition(feature)])
+
+    def __str__(self):
+        return "e_dec(" + str([str(c.literal.feature.name) for c in self.successor_conditions]) + ")"
 
 class UnknownBooleanEffect(Effect):
     def __init__(self, feature):
         super().__init__([PositiveBooleanCondition(feature), NegativeBooleanCondition(feature)])
 
+    def __str__(self):
+        return "e_unk(" + str([str(c.literal.feature.name) for c in self.successor_conditions]) + ")"
+
 class UnknownNumericalEffect(Effect):
     def __init__(self, feature):
         super().__init__([GreaterNumericalCondition(feature), EqualNumericalCondition(feature)])
+
+    def __str__(self):
+        return "e_unk(" + str([str(c.literal.feature.name) for c in self.successor_conditions]) + ")"
 
 
 class Feature(abc.ABC):
@@ -103,9 +133,12 @@ class Feature(abc.ABC):
         """
         pass
 
+    def __str__(self):
+        return self.name
+
 class BooleanFeature(Feature):
-    def __init(self, index, name):
-        super().__init(index, name)
+    def __init__(self, index, name):
+        super().__init__(index, name)
 
     def make_condition(self, name):
         if name == "c_pos":
@@ -125,9 +158,10 @@ class BooleanFeature(Feature):
         else:
             raise Exception(f"Unknown condition: {name}")
 
+
 class NumericalFeature(Feature):
-    def __init(self, index, name):
-        super().__init(index, name)
+    def __init__(self, index, name):
+        super().__init__(index, name)
 
     def make_condition(self, name):
         if name == "c_eq":
@@ -167,7 +201,10 @@ class Features:
         self.feature_to_index[n.name] = n.index
         self.features.append(n)
 
-    def get_feature(self, name):
+    def get_feature_by_index(self, index):
+        return self.features[index]
+
+    def get_feature_by_name(self, name):
         if name not in self.feature_to_index:
             raise Exception(f"There is no feature with name {name}")
         return self.features[self.feature_to_index[name]]
