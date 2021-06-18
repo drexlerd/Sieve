@@ -1,117 +1,158 @@
 import abc
 
 
-class Literal(abc.ABC):
-    """ Literal represents boolean feature valuation.
+class Condition():
+    """
     """
     def __init__(self, feature):
         self.feature = feature
 
     @abc.abstractmethod
-    def is_satisfied(self, state : set):
+    def is_satisfied(self, state):
         pass
 
-class PositiveLiteral(Literal):
+class NegativeBooleanCondition(Condition):
     def __init__(self, feature):
         super().__init__(feature)
 
     def is_satisfied(self, state):
         return self.feature.index in state.index_set
 
-class NegativeLiteral(Literal):
+    def __str__(self):
+        return "c_neg(" + self.feature.name + ")"
+
+class PositiveBooleanCondition(Condition):
     def __init__(self, feature):
         super().__init__(feature)
 
     def is_satisfied(self, state):
         return self.feature.index not in state.index_set
 
-
-class Condition():
-    """ Conditions for deriving boolean feature valuations.
-        We call the boolean feature valuations as propositions
-        because they can be either true or false.
-    """
-    def __init__(self,  literal):
-        self.literal = literal
-
-
-class NegativeBooleanCondition(Condition):
-    def __init__(self, feature):
-        super().__init__(PositiveLiteral(feature))
-
     def __str__(self):
-        return "c_neg(" + self.literal.feature.name + ")"
-
-class PositiveBooleanCondition(Condition):
-    def __init__(self, feature):
-        super().__init__(NegativeLiteral(feature))
-
-    def __str__(self):
-        return "c_pos(" + self.literal.feature.name + ")"
+        return "c_pos(" + self.feature.name + ")"
 
 class EqualNumericalCondition(Condition):
     def __init__(self, feature):
-        super().__init__(PositiveLiteral(feature))
+        super().__init__(feature)
+
+    def is_satisfied(self, state):
+        return self.feature.index in state.index_set
 
     def __str__(self):
-        return "c_eq(" + self.literal.feature.name + ")"
+        return "c_eq(" + self.feature.name + ")"
 
 class GreaterNumericalCondition(Condition):
     def __init__(self, feature):
-        super().__init__(NegativeLiteral(feature))
+        super().__init__(feature)
+
+    def is_satisfied(self, state):
+        return self.feature.index not in state.index_set
 
     def __str__(self):
-        return "c_gt(" + self.literal.feature.name + ")"
+        return "c_gt(" + self.feature.name + ")"
 
 
 class Effect(abc.ABC):
-    """ Effects for deriving successor conditions.
     """
-    def __init__(self, successor_conditions):
-        self.successor_conditions = successor_conditions
+    """
+    def __init__(self, feature):
+        self.feature = feature
 
+    @abc.abstractmethod
+    def is_satisfied(self, source, target):
+        pass
 
 class PositiveBooleanEffect(Effect):
     def __init__(self, feature):
-        super().__init__([PositiveBooleanCondition(feature)])
+        super().__init__(feature)
+
+    def is_satisfied(self, source, target):
+        if self.feature.index not in target.index_set:
+            return True
+        return False
 
     def __str__(self):
-        return "e_pos(" + str([str(c.literal.feature.name) for c in self.successor_conditions]) + ")"
+        return "e_pos(" + str(self.feature.name) + ")"
 
 class NegativeBooleanEffect(Effect):
     def __init__(self, feature):
-        super().__init__([NegativeBooleanCondition(feature)])
+        super().__init__(feature)
+
+    def is_satisfied(self, source, target):
+        if self.feature.index in target.index_set:
+            return True
+        return False
 
     def __str__(self):
-        return "e_neg(" + str([str(c.literal.feature.name) for c in self.successor_conditions]) + ")"
+        return "e_neg(" + str(self.feature.name) + ")"
 
 class IncrementNumericalEffect(Effect):
     def __init__(self, feature):
-        super().__init__([GreaterNumericalCondition(feature)])
+        super().__init__(feature)
+
+    def is_satisfied(self, source, target):
+        # gt(n) must hold in target
+        if self.feature.index not in target.index_set:
+            return True
+        return False
 
     def __str__(self):
-        return "e_inc(" + str([str(c.literal.feature.name) for c in self.successor_conditions]) + ")"
+        return "e_inc(" + str(self.feature.name) + ")"
 
 class DecrementNumericalEffect(Effect):
     def __init__(self, feature):
-        super().__init__([GreaterNumericalCondition(feature), EqualNumericalCondition(feature)])
+        super().__init__(feature)
+
+    def is_satisfied(self, source, target):
+        # gt(n) or eq(n) may hold in target
+        # decrement not applicable if eq(n) holds in source
+        if self.feature.index not in source.index_set:
+            return True
+        return False
 
     def __str__(self):
-        return "e_dec(" + str([str(c.literal.feature.name) for c in self.successor_conditions]) + ")"
+        return "e_dec(" + str(self.feature.name) + ")"
 
 class UnknownBooleanEffect(Effect):
     def __init__(self, feature):
-        super().__init__([PositiveBooleanCondition(feature), NegativeBooleanCondition(feature)])
+        super().__init__(feature)
+
+    def is_satisfied(self, source, target):
+        return True
 
     def __str__(self):
-        return "e_unk(" + str([str(c.literal.feature.name) for c in self.successor_conditions]) + ")"
+        return "e_unk(" + str(self.feature.name) + ")"
 
 class UnknownNumericalEffect(Effect):
     def __init__(self, feature):
-        super().__init__([GreaterNumericalCondition(feature), EqualNumericalCondition(feature)])
+        super().__init__(feature)
+
+    def is_satisfied(self, source, target):
+        return True
 
     def __str__(self):
-        return "e_unk(" + str([str(c.literal.feature.name) for c in self.successor_conditions]) + ")"
+        return "e_unk(" + str(self.feature.name) + ")"
+
+class UnchangedBooleanEffect(Effect):
+    def __init__(self, feature):
+        super().__init__(feature)
+
+    def is_satisfied(self, source, target):
+        return (self.feature.index in source.index_set == self.feature.index in target.index_set)
+
+    def __str__(self):
+        return "e_same(" + str(self.feature.name) + ")"
+
+class UnchangedNumericalEffect(Effect):
+    def __init__(self, feature):
+        super().__init__(feature)
+
+    def is_satisfied(self, source, target):
+        return (self.feature.index in source.index_set == self.feature.index in target.index_set)
+
+    def __str__(self):
+        return "e_same(" + str(self.feature.name) + ")"
+
 
 
 class Feature(abc.ABC):
@@ -155,6 +196,8 @@ class BooleanFeature(Feature):
             return NegativeBooleanEffect(self)
         elif name == "e_unk":
             return UnknownBooleanEffect(self)
+        elif name == "e_same":
+            return UnchangedBooleanEffect(self)
         else:
             raise Exception(f"Unknown condition: {name}")
 
@@ -177,6 +220,8 @@ class NumericalFeature(Feature):
             return DecrementNumericalEffect(self)
         elif name == "e_unk":
             return UnknownNumericalEffect(self)
+        elif name == "e_same":
+            return UnchangedNumericalEffect(self)
         else:
             raise Exception(f"Unknown condition: {name}")
 
@@ -193,6 +238,9 @@ class Features:
         if name not in self.feature_to_index:
             raise Exception(f"There is no feature with name {name}")
         return self.features[self.feature_to_index[name]]
+
+    def get_num_features(self):
+        return len(self.features)
 
 
 class FeaturesParser:

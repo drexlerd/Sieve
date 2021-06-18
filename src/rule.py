@@ -2,21 +2,25 @@
 class Rule:
     """ Rule consists of list of Conditions and list of Effects
     """
-    def __init__(self, conditions, effects):
+    def __init__(self, features, conditions, effects):
+        self.features = features
         self.conditions = conditions
         self.effects = effects
 
     def is_compatible(self, source, target):
         for condition in self.conditions:
-            if not condition.literal.is_satisfied(source):
+            if not condition.is_satisfied(source):
                 return False
+        checked = set()
         for effect in self.effects:
-            satisfied_at_least_one = False
-            for condition in effect.successor_conditions:
-                if condition.literal.is_satisfied(target):
-                    satisfied_at_least_one = True
-            if not satisfied_at_least_one:
+            checked.add(effect.feature.index)
+            if not effect.is_satisfied(source, target):
                 return False
+        for index in range(self.features.get_num_features()):
+            if index not in checked:
+                unchanged_effect = self.features.get_feature_by_index(index).make_effect("e_same")
+                if not unchanged_effect.is_satisfied(source, target):
+                    return False
         return True
 
     def __str__(self):
@@ -45,7 +49,7 @@ class Tokenizer():
 class RulesParser:
     def parse(self, features, rules_description):
         tokens = Tokenizer().tokenize(rules_description)
-        return [Rule(conditions, effects) for conditions, effects in self._parse(features, tokens)]
+        return [Rule(features, conditions, effects) for conditions, effects in self._parse(features, tokens)]
 
     def _parse(self, features, tokens):
         if not tokens:
@@ -69,7 +73,7 @@ class RulesParser:
             return feature
         elif t in ["c_pos", "c_neg", "c_gt", "c_eq"]:
             return features.get_feature_by_name(self._parse(features, tokens)).make_condition(t)
-        elif t in ["e_pos", "e_neg", "e_dec", "e_inc", "e_unk"]:
+        elif t in ["e_pos", "e_neg", "e_dec", "e_inc", "e_unk", "e_same"]:
             return features.get_feature_by_name(self._parse(features, tokens)).make_effect(t)
         else:
             raise Exception(f"Unknown token {t}.")
