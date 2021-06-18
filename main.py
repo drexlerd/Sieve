@@ -5,8 +5,14 @@ from src.policy import Policy
 
 # python3 main.py "[b]" "[n]" "[[[c_gt(n)],[e_dec(n)]], [[c_pos(b)], [e_neg(b)]]]"
 
+# tpp
+# python3 main.py "[]" "[u, w]" "[[[c_gt(u)], [e_dec(u)]], [[c_gt(w)], [e_unk(u), e_dec(w)]]]"
+
 # barman
 # python3 main.py "[c1, c2]" "[u, g]" "[[[c_neg(c1)],[e_unk(u), e_pos(c1)]], [[c_pos(c1), c_neg(c2)],[e_unk(u), e_pos(c2)]], [[c_gt(u)],[e_dec(u)]], [[c_gt(g)],[e_dec(g), e_unk(c1), e_unk(c2)]]]"
+
+# grid
+# python3 main.py "[o, t]" "[l, k]" "[[[c_gt(l)],[e_dec(l), e_unk(k), e_unk(o), e_unk(t)]], [[c_eq(l), c_gt(k)],[e_dec(k), e_unk(o), e_unk(t)]], [[c_gt(l), c_neg(o)],[e_pos(o), e_unk(t)]], [[c_eq(l), c_neg(t)],[e_unk(o), e_pos(t)]]]"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Sieve Algorithm")

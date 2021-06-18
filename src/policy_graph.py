@@ -35,11 +35,11 @@ class PolicyGraph:
                 target = State(policy.features, self._index_to_propositions(target_id))
                 for rule in policy.rules:
                     if rule.is_compatible(source, target):
-                        print("%s, %s, %s" % (source, target, rule))
+                        # print("%s, %s, %s" % (source, target, rule))
                         edge = Edge(source_id, target_id, rule)
                         self.forward_graph[source_id].add(edge)
                         self.backward_graph[target_id].add(edge)
-        print([str(State(self.policy.features, self._index_to_propositions(i))) for i in range(self.num_states)])
+        # print([str(State(self.policy.features, self._index_to_propositions(i))) for i in range(self.num_states)])
 
     def _index_to_propositions(self, index):
         """ Compute propositions from a state index.
@@ -72,7 +72,6 @@ class PolicyGraph:
         """
         # 1. Compute strongly connected components
         sccs = Kosajaru().compute_sccs(state_ids, self.forward_graph, self.backward_graph)
-        print(sccs)
         # 2. Remove edges between different sccs because they are traversed only once.
         for scc in sccs:
             scc_set = set(scc)
@@ -136,7 +135,6 @@ class PolicyGraph:
                 self.backward_graph[edge.target_id].discard(edge)
         # 3. if no edges were removed from g' return "Non-terminating"
         if not removed:
-            self._print_graphs()
             return False
         # 4. if at least one edge was removed then return the result of another call to sieve.
         else:
