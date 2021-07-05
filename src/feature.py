@@ -138,7 +138,7 @@ class UnchangedBooleanEffect(Effect):
         super().__init__(feature)
 
     def is_satisfied(self, source, target):
-        return (self.feature.index in source.index_set == self.feature.index in target.index_set)
+        return (self.feature.index in source.index_set) == (self.feature.index in target.index_set)
 
     def __str__(self):
         return "e_same(" + str(self.feature.name) + ")"
@@ -148,7 +148,7 @@ class UnchangedNumericalEffect(Effect):
         super().__init__(feature)
 
     def is_satisfied(self, source, target):
-        return (self.feature.index in source.index_set == self.feature.index in target.index_set)
+        return (self.feature.index in source.index_set) == (self.feature.index in target.index_set)
 
     def __str__(self):
         return "e_same(" + str(self.feature.name) + ")"
